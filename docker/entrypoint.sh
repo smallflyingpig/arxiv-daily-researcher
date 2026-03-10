@@ -17,7 +17,13 @@ echo "Cron Schedule: $CRON_SCHEDULE"
 echo "Run on Startup: $RUN_ON_STARTUP"
 
 # Ensure data directories exist
-mkdir -p /app/data/reports /app/data/history \
+mkdir -p /app/data/reports/daily_research/markdown \
+         /app/data/reports/daily_research/html \
+         /app/data/reports/trend_research/markdown \
+         /app/data/reports/trend_research/html \
+         /app/data/reports/keyword_trend/markdown \
+         /app/data/reports/keyword_trend/html \
+         /app/data/history \
          /app/data/reference_pdfs /app/data/downloaded_pdfs \
          /app/logs
 
@@ -25,6 +31,26 @@ mkdir -p /app/data/reports /app/data/history \
 LOG_KEEP_DAYS="${LOG_KEEP_DAYS:-30}"
 find /app/logs -name "cron_*.log" -type f -mtime +${LOG_KEEP_DAYS} -delete 2>/dev/null || true
 find /app/logs -name "startup_*.log" -type f -mtime +${LOG_KEEP_DAYS} -delete 2>/dev/null || true
+find /app/logs -name "daily_*.log" -type f -mtime +${LOG_KEEP_DAYS} -delete 2>/dev/null || true
+find /app/logs -name "trend_*.log" -type f -mtime +${LOG_KEEP_DAYS} -delete 2>/dev/null || true
+
+# ==================== Interactive Setup Wizard ====================
+# Run setup wizard on first deployment (no .env file) or when SETUP_WIZARD=true
+SETUP_WIZARD="${SETUP_WIZARD:-auto}"
+if [ "$SETUP_WIZARD" = "true" ]; then
+    echo ""
+    echo "Running interactive setup wizard..."
+    cd /app && python src/utils/setup_wizard.py
+    echo "Setup wizard complete."
+    echo ""
+elif [ "$SETUP_WIZARD" = "auto" ] && [ ! -f /app/.env ]; then
+    echo ""
+    echo "No .env file detected — first deployment."
+    echo "Running interactive setup wizard..."
+    cd /app && python src/utils/setup_wizard.py
+    echo "Setup wizard complete."
+    echo ""
+fi
 
 # ==================== Single Execution Mode ====================
 if [ "$MODE" = "run-once" ]; then

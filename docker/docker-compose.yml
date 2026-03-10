@@ -3,8 +3,13 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+    image: docker-arxiv-researcher:latest
     container_name: arxiv-daily-researcher
     restart: unless-stopped
+
+    # 交互式终端支持 (setup wizard 需要)
+    stdin_open: true
+    tty: true
 
     # 使用宿主机网络，使容器可直接访问 localhost 上的本地 LLM API 等服务
     network_mode: host
@@ -19,6 +24,7 @@ services:
       - CRON_SCHEDULE=0 8 * * * # 定时执行 (默认每天 8:00)
       - RUN_ON_STARTUP=true # 容器启动时是否立即运行一次
       - MODE=cron # cron=定时模式, run-once=单次运行
+      - SETUP_WIZARD=auto # auto=首次部署自动运行, true=强制运行, false=跳过
 
     volumes:
       # 持久化数据 (报告、历史、数据库)
@@ -27,8 +33,11 @@ services:
       # 日志
       - ../logs:/app/logs
 
-      # 配置文件 (只读挂载)
-      - ../configs:/app/configs:ro
+      # 配置文件 (读写挂载，setup wizard 需要写入)
+      - ../configs:/app/configs
+
+      # .env 文件 (读写挂载，setup wizard 需要写入)
+      - ../.env:/app/.env
 
     # 资源限制 (适配 NAS 等低配设备)
     deploy:
@@ -52,3 +61,54 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+  # ==================== Config Panel (Web UI) ====================
+  # 启动方式: docker compose --profile webui up -d config-panel
+  config-panel:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.webui
+    image: docker-arxiv-config-panel:latest
+    container_name: arxiv-config-panel
+    restart: unless-stopped
+    profiles:
+      - webui
+
+    ports:
+      - "8501:8501"
+
+    env_file:
+      - ../.env
+
+    environment:
+      - TZ=Asia/Shanghai
+
+    volumes:
+      # 配置文件 (读写挂载，面板需要写入)
+      - ../configs:/app/configs
+      # .env 文件 (读写挂载)
+      - ../.env:/app/.env
+      # .env.example 模板 (只读)
+      - ../.env.example:/app/.env.example:ro
+      # 报告目录 (只读，报告查看器需要)
+      - ../data:/app/data:ro
+
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"

@@ -1,6 +1,7 @@
 import logging
 import sys
 import os
+from datetime import datetime
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from pathlib import Path
 
@@ -8,6 +9,7 @@ from pathlib import Path
 # 如果导入失败（比如单独测试这个文件时），则回退到当前目录
 try:
     from config import settings
+
     LOG_DIR = settings.PROJECT_ROOT / "logs"
 except ImportError:
     LOG_DIR = Path(__file__).resolve().parent.parent.parent / "logs"
@@ -17,6 +19,7 @@ def _get_log_config():
     """从 settings 获取日志配置，失败时返回默认值。"""
     try:
         from config import settings as _s
+
         return _s.LOG_ROTATION_TYPE, _s.LOG_KEEP_DAYS
     except Exception:
         return "time", 30
@@ -57,8 +60,7 @@ def setup_logger(name: str = "ArxivResearcher"):
     # 4. 定义日志格式
     # 格式：[时间] [日志级别] [模块名] - 消息
     formatter = logging.Formatter(
-        fmt="%(asctime)s | %(levelname)-8s | %(name)-15s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
+        fmt="%(asctime)s | %(levelname)-8s | %(name)-15s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
 
     # 5. Handler: 控制台 (StreamHandler)
@@ -94,3 +96,45 @@ def setup_logger(name: str = "ArxivResearcher"):
     logger.addHandler(file_handler)
 
     return logger
+
+
+def setup_run_log(mode: str = "daily_research") -> Path:
+    """
+    创建一次运行专用的日志文件，并为根 logger 添加对应的 FileHandler。
+
+    命名规则（与 entrypoint.sh 的 cron/startup 日志对齐）:
+      - daily_research  → logs/daily_YYYYMMDD_HHMMSS.log
+      - trend_research  → logs/trend_YYYYMMDD_HHMMSS.log
+
+    返回:
+        Path: 日志文件路径
+    """
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+    prefix_map = {
+        "daily_research": "daily",
+        "trend_research": "trend",
+    }
+    prefix = prefix_map.get(mode, mode)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = LOG_DIR / f"{prefix}_{timestamp}.log"
+
+    formatter = logging.Formatter(
+        fmt="%(asctime)s | %(levelname)-8s | %(name)-15s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+    handler = logging.FileHandler(log_file, encoding="utf-8")
+    handler.setFormatter(formatter)
+    handler.setLevel(logging.INFO)
+
+    # 添加到根 logger，这样所有子 logger 的输出都会写入此文件
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    root.addHandler(handler)
+
+    # 抑制第三方库的噪音日志，只保留警告及以上
+    for noisy in ("httpx", "httpcore", "arxiv", "openai", "urllib3"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
+
+    return log_file

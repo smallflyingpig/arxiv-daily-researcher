@@ -100,6 +100,7 @@ class AnalysisAgent:
 
     def _call_cheap_llm(self, prompt: str) -> str:
         """调用低成本LLM（JSON模式），带自动重试。"""
+        estimated_prompt_tokens = len(prompt) // 4
 
         @retry(
             stop=stop_after_attempt(settings.RETRY_MAX_ATTEMPTS),
@@ -108,18 +109,34 @@ class AnalysisAgent:
             reraise=True,
         )
         def _do_call():
-            resp = self.cheap_client.chat.completions.create(
-                model=settings.CHEAP_LLM.model_name,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=settings.CHEAP_LLM.temperature,
-                response_format={"type": "json_object"},
-            )
+            try:
+                resp = self.cheap_client.chat.completions.create(
+                    model=settings.CHEAP_LLM.model_name,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=settings.CHEAP_LLM.temperature,
+                    response_format={"type": "json_object"},
+                )
+            except Exception:
+                if settings.TOKEN_TRACKING_ENABLED:
+                    from utils.token_counter import token_counter
+
+                    token_counter.add(settings.CHEAP_LLM.model_name, estimated_prompt_tokens, 0)
+                raise
+            if settings.TOKEN_TRACKING_ENABLED and resp.usage:
+                from utils.token_counter import token_counter
+
+                token_counter.add(
+                    settings.CHEAP_LLM.model_name,
+                    resp.usage.prompt_tokens,
+                    resp.usage.completion_tokens,
+                )
             return resp.choices[0].message.content
 
         return _do_call()
 
     def _call_cheap_llm_plain(self, prompt: str) -> str:
         """调用低成本LLM（纯文本模式），带自动重试。"""
+        estimated_prompt_tokens = len(prompt) // 4
 
         @retry(
             stop=stop_after_attempt(settings.RETRY_MAX_ATTEMPTS),
@@ -128,17 +145,33 @@ class AnalysisAgent:
             reraise=True,
         )
         def _do_call():
-            resp = self.cheap_client.chat.completions.create(
-                model=settings.CHEAP_LLM.model_name,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.3,
-            )
+            try:
+                resp = self.cheap_client.chat.completions.create(
+                    model=settings.CHEAP_LLM.model_name,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.3,
+                )
+            except Exception:
+                if settings.TOKEN_TRACKING_ENABLED:
+                    from utils.token_counter import token_counter
+
+                    token_counter.add(settings.CHEAP_LLM.model_name, estimated_prompt_tokens, 0)
+                raise
+            if settings.TOKEN_TRACKING_ENABLED and resp.usage:
+                from utils.token_counter import token_counter
+
+                token_counter.add(
+                    settings.CHEAP_LLM.model_name,
+                    resp.usage.prompt_tokens,
+                    resp.usage.completion_tokens,
+                )
             return resp.choices[0].message.content.strip()
 
         return _do_call()
 
     def _call_smart_llm(self, prompt: str) -> str:
         """调用高性能LLM（JSON模式），带自动重试。"""
+        estimated_prompt_tokens = len(prompt) // 4
 
         @retry(
             stop=stop_after_attempt(settings.RETRY_MAX_ATTEMPTS),
@@ -147,12 +180,27 @@ class AnalysisAgent:
             reraise=True,
         )
         def _do_call():
-            resp = self.smart_client.chat.completions.create(
-                model=settings.SMART_LLM.model_name,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=settings.SMART_LLM.temperature,
-                response_format={"type": "json_object"},
-            )
+            try:
+                resp = self.smart_client.chat.completions.create(
+                    model=settings.SMART_LLM.model_name,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=settings.SMART_LLM.temperature,
+                    response_format={"type": "json_object"},
+                )
+            except Exception:
+                if settings.TOKEN_TRACKING_ENABLED:
+                    from utils.token_counter import token_counter
+
+                    token_counter.add(settings.SMART_LLM.model_name, estimated_prompt_tokens, 0)
+                raise
+            if settings.TOKEN_TRACKING_ENABLED and resp.usage:
+                from utils.token_counter import token_counter
+
+                token_counter.add(
+                    settings.SMART_LLM.model_name,
+                    resp.usage.prompt_tokens,
+                    resp.usage.completion_tokens,
+                )
             return resp.choices[0].message.content
 
         return _do_call()
