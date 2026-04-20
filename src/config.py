@@ -71,6 +71,28 @@ class Settings(BaseSettings):
     # Semantic Scholar 配置
     ENABLE_SEMANTIC_SCHOLAR_TLDR: bool = True  # 是否获取AI生成的TLDR
     SEMANTIC_SCHOLAR_API_KEY: str = ""  # Semantic Scholar API Key（可选）
+    SEMANTIC_SCHOLAR_AS_SOURCE: bool = False  # 是否作为独立数据源（而非仅增强器）
+    SEMANTIC_SCHOLAR_FIELD_OF_STUDY: str = "Computer Science"  # 研究领域筛选
+
+    # DBLP 配置（CS 文献索引，无需 API Key）
+    DBLP_ENABLED: bool = False  # 是否启用 DBLP 数据源
+
+    # Papers with Code 配置（ML 论文+代码，无需 API Key）
+    PAPERSWITHCODE_ENABLED: bool = False  # 是否启用 Papers with Code 数据源
+
+    # OpenReview 配置（顶会论文）
+    OPENREVIEW_ENABLED: bool = False  # 是否启用 OpenReview 数据源
+    OPENREVIEW_API_KEY: str = ""  # OpenReview API Key（可选）
+    OPENREVIEW_VENUES: List[str] = ["ICLR", "NeurIPS"]  # 会议列表
+    OPENREVIEW_ACCEPTED_ONLY: bool = True  # 只获取已录用论文
+
+    # Hugging Face Papers 配置（每日 AI 论文）
+    HUGGINGFACE_PAPERS_ENABLED: bool = False  # 是否启用 HF Papers 数据源
+
+    # Google Scholar 配置（无官方 API，风险较高）
+    GOOGLE_SCHOLAR_ENABLED: bool = False  # 是否启用 Google Scholar 数据源
+    GOOGLE_SCHOLAR_USE_PROXY: bool = False  # 是否使用代理
+    GOOGLE_SCHOLAR_PROXY_URL: str = ""  # 代理 URL
 
     # ==================== 关键词配置 ====================
     # 主要关键词（手动指定，高权重）

@@ -20,7 +20,15 @@ ENV_EXAMPLE_PATH = PROJECT_ROOT / ".env.example"
 # ==================== Data Source Options ====================
 
 ALL_DATA_SOURCES = [
+    # 计算机科学核心数据源
     "arxiv",
+    "semantic_scholar",
+    "dblp",
+    "paperswithcode",
+    "openreview",
+    "huggingface_papers",
+    "google_scholar",
+    # 物理期刊（通过 OpenAlex）
     "prl",
     "pra",
     "prb",
@@ -30,6 +38,7 @@ ALL_DATA_SOURCES = [
     "prx",
     "prxq",
     "rmp",
+    # 综合期刊
     "nature",
     "nature_physics",
     "nature_communications",

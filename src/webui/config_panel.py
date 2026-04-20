@@ -191,3 +191,12 @@ with tabs[5]:
 
 with tabs[6]:
     reports.render(env_values, config_values)
+
+# ==================== Footer ====================
+st.divider()
+st.markdown("""
+<div style="text-align: center; padding: 0.5rem; font-size: 0.8rem; color: #7a8599;">
+    🔬 ArXiv Daily Researcher Config Panel •
+    <a href="http://172.19.17.30:8502" style="color: #00ff9f;">📖 打开报告阅读器</a>
+</div>
+""", unsafe_allow_html=True)

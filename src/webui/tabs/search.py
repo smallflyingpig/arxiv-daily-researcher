@@ -2,27 +2,7 @@
 
 import streamlit as st
 from webui.i18n import t
-
-ALL_DATA_SOURCES = [
-    "arxiv",
-    "prl",
-    "pra",
-    "prb",
-    "prc",
-    "prd",
-    "pre",
-    "prx",
-    "prxq",
-    "rmp",
-    "nature",
-    "nature_physics",
-    "nature_communications",
-    "science",
-    "science_advances",
-    "npj_quantum_information",
-    "quantum",
-    "new_journal_of_physics",
-]
+from utils.config_io import ALL_DATA_SOURCES
 
 # Common ArXiv categories
 ARXIV_CATEGORIES = [
