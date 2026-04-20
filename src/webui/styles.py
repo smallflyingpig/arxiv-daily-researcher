@@ -429,40 +429,24 @@ code, pre {
     border-radius: 3px;
 }
 
-/* Password visibility toggle button - ensure visible */
-[data-testid="stTextInput"] button[kind="icon"] {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    background: var(--paper-warm) !important;
-    border: 1px solid var(--gold-glint) !important;
-    border-radius: 4px !important;
-    color: var(--ink-deep) !important;
-    width: auto !important;
-    height: auto !important;
-    padding: 4px 8px !important;
-    margin-left: 4px !important;
+/* Password visibility toggle button - HIDDEN for security */
+[data-testid="stTextInput"] button[kind="icon"],
+[data-testid="stTextInput"] [data-testid="stPasswordVisibilityToggle"],
+.stTextInput button[aria-label*="visibility"],
+.stTextInput button[aria-label*="password"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
-[data-testid="stTextInput"] button[kind="icon"]:hover {
-    background: var(--coral-soft) !important;
-    border-color: var(--coral-fire) !important;
-    color: var(--paper-vellum) !important;
-}
-
-[data-testid="stTextInput"] button[kind="icon"] svg {
-    color: var(--ink-deep) !important;
-    fill: var(--ink-deep) !important;
-}
-
-[data-testid="stTextInput"] button[kind="icon"]:hover svg {
-    color: var(--paper-vellum) !important;
-    fill: var(--paper-vellum) !important;
-}
-
-/* Password input field styling */
-.stTextInput input[type="password"] {
-    width: calc(100% - 40px) !important;
+/* Password input field - full width */
+.stTextInput input[type="password"],
+input[type="password"] {
+    width: 100% !important;
 }
 
 /* ==================== Toggle ==================== */
